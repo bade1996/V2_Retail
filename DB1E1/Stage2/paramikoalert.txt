@@ -1,0 +1,103 @@
+
+from email import encoders
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+import os,sys
+import paramiko
+import logging
+import smtplib
+import os.path
+import ssl
+from datetime import datetime, timedelta
+
+todaysdate=datetime.today()
+ssh=paramiko.SSHClient()
+#print(ssh)
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect(hostname='192.168.150.249',username='root',password='vrl@1234',port=22)###linux username
+print(ssh)
+sftp_client=ssh.open_sftp()
+exit()
+def send_error_email(exception, message, file):
+    sender = "alert@kockpit.in"
+    recipient = ["prashant.s@kockpit.in"]
+    Cc = ["manjeet.yadav@kockpit.in"]
+    msg = MIMEMultipart()
+    msg['Subject'] = 'Error in Loading Parquet - '+str(todaysdate)
+    msg['From'] = sender
+    msg['To'] = ', '.join(recipient)
+    msg['Cc'] = ', '.join(Cc)
+
+    text = "Exception mail"
+    html = f"""
+        <html>
+          <body>
+    
+            <h1> Exception Details: </h1> <b>Exception:</b> {exception}
+            <p>
+                <b>File:</b>{file}
+            </p>
+            <p>
+                <b>Error Line:</b>{message}
+            </p>
+    
+          </body>
+        </html>
+        """
+
+    part1 = MIMEText(text, 'plain')
+    part2 = MIMEText(html, 'html')
+
+    msg.attach(part1)
+    msg.attach(part2)
+    mail = smtplib.SMTP('smtp.gmail.com', 587)
+    mail.ehlo()
+
+    mail.starttls()
+
+    mail.login('Alert@kockpit.in', 'alert@123')
+    # mail.sendmail(sender, (recipient + Cc) , msg.as_string())
+    mail.sendmail(sender, (recipient + Cc), msg.as_string())
+    mail.quit()
+    
+try:
+    ssh=paramiko.SSHClient()
+    #print(ssh)
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname='192.168.150.100',username='root',password='vrl@1234',port=22)
+    sftp_client=ssh.open_sftp()
+    sftp_client.put("D:\\kockpit\\Data\\sales.parquet",'/root/ETLparquet/sales.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\grc.parquet",'/root/ETLparquet/grc.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\wm_stok.parquet",'/root/ETLparquet/wm_stok.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\country.parquet",'/root/ETLparquet/country.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\location.parquet",'/root/ETLparquet/location.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\plant.parquet",'/root/ETLparquet/plant.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\state.parquet",'/root/ETLparquet/state.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\mc_master.parquet",'/root/ETLparquet/mc_master.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\ET_PO_DATA.parquet",'/root/ETLparquet/ET_PO_DATA.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\ET_PRD_DATA.parquet",'/root/ETLparquet/ET_PRD_DATA.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\map.parquet",'/root/ETLparquet/map.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\vendor_master.parquet",'/root/ETLparquet/vendor_master.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\artile_master.parquet",'/root/ETLparquet/artile_master.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\ET_MSA_TO_008.parquet",'/root/ETLparquet/ET_MSA_TO_008.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\ET_V01_TO_008.parquet",'/root/ETLparquet/ET_V01_TO_008.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\ET_008_TO_001.parquet",'/root/ETLparquet/ET_008_TO_001.parquet')
+    sftp_client.put("D:\\kockpit\\Data\\ET_002_TO_008.parquet",'/root/ETLparquet/ET_002_TO_008.parquet')
+    # mail(sftp_client)
+    sftp_client.close()
+    ssh.close()
+    print("\U0001F637")
+    #
+    #
+except Exception as ex:
+    print(ex)
+    exc_type,exc_value,exc_traceback=sys.exc_info()
+    print("Error:",ex)
+    print("type - "+str(exc_type))
+    print("File - "+exc_traceback.tb_frame.f_code.co_filename)
+    a = "Error Line No. - "+str(exc_traceback.tb_lineno)
+    print(a)
+    send_error_email(exception=ex, message=str(exc_traceback.tb_lineno), file=exc_traceback.tb_frame.f_code.co_filename)
+    print('Email sent')

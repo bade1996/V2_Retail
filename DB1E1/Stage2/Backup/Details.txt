@@ -1,0 +1,15 @@
+Stock_Sales_Amount
+Stock Query
+Stock Snapshot
+Market99.py
+Above 4 need not to run ---Swapneil
+
+SL_Concat ->Sales_Concat
+Stk->Stock
+
+Dependency:-
+Run Stk_Concat before Stk_Concat_Snapshot
+*Stk_Concat_Snapshot takes data from begining to end then
+breaks it into snappshots of 15 days interval data of 15 
+days
+
